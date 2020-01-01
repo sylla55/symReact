@@ -2,13 +2,20 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\UserInterface;
+
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ * @ApiResource
+ * @UniqueEntity("email",message="L'addresse email doit etre unique")
  */
 class User implements UserInterface
 {
@@ -16,11 +23,15 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"customers_read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Groups({"customers_read"})
+     * @Assert\NotBlank(message="L'email doit etre renseigné")
+     * @Assert\Email(message="L'adresse email doit etre valide")
      */
     private $email;
 
@@ -32,16 +43,27 @@ class User implements UserInterface
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
+     * @Assert\NotBlank(message="Le mot de passe doit etre renseigné")
      */
     private $password;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"customers_read"})
+     * @Assert\NotBlank(message="Le prenom doit etre renseigné")
+     * @Assert\Length(min=3,max=50,
+     *                 minMessage="Le prenom doit faire plus de 3 caracteres",
+     *                 maxMessage="Le prenom doit faire moins de 50 caracteres")
      */
     private $firstName;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"customers_read"})
+     * @Assert\NotBlank(message="Le nom doit etre renseigné")
+     * @Assert\Length(min=3,max=50,
+     *                 minMessage="Le nom doit faire plus de 3 caracteres",
+     *                 maxMessage="Le nom doit faire moins de 50 caracteres")
      */
     private $lastName;
 
