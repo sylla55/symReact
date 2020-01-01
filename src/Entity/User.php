@@ -14,7 +14,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @ApiResource
+ * @ApiResource(
+ *   normalizationContext={"groups"={"users_read"}}
+ * )
  * @UniqueEntity("email",message="L'addresse email doit etre unique")
  */
 class User implements UserInterface
@@ -23,7 +25,7 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @Groups({"customers_read"})
+     * @Groups({"customers_read","users_read","invoices_read","invoices_subresource"})
      */
     private $id;
 
@@ -32,6 +34,7 @@ class User implements UserInterface
      * @Groups({"customers_read"})
      * @Assert\NotBlank(message="L'email doit etre renseigné")
      * @Assert\Email(message="L'adresse email doit etre valide")
+     * @Groups({"customers_read","users_read","invoices_read","invoices_subresource"})
      */
     private $email;
 
@@ -49,7 +52,7 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"customers_read"})
+     * @Groups({"customers_read","users_read","invoices_read","invoices_subresource"})
      * @Assert\NotBlank(message="Le prenom doit etre renseigné")
      * @Assert\Length(min=3,max=50,
      *                 minMessage="Le prenom doit faire plus de 3 caracteres",
@@ -59,7 +62,7 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"customers_read"})
+     * @Groups({"customers_read","users_read","invoices_read","invoices_subresource"})
      * @Assert\NotBlank(message="Le nom doit etre renseigné")
      * @Assert\Length(min=3,max=50,
      *                 minMessage="Le nom doit faire plus de 3 caracteres",
