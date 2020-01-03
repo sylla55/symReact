@@ -19,8 +19,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomerRepository")
  * @ApiResource(
- *  collectionOperations={"GET","POST"},
- *  itemOperations={"GET"={"path","PUT","DELETE"}},
  *  normalizationContext={"groups"={"customers_read"}}
  * )
  * @ApiFilter(SearchFilter::class)
