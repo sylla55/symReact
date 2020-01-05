@@ -2,20 +2,24 @@ import React, { Fragment, useEffect, useState } from 'react';
 import Pagination from '../components/Pagination';
 import { default as CustomersApi, default as customersApi } from '../services/customersApi';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import TableLoader from '../components/loader/TableLoader';
 
 export default function CustomersPage(props) {
 
   const [customers, setCustomers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [seach, setSeach] = useState("");
+  const [loading,setLoading] = useState(true);
 
   //Permet d'aller recuperer les clients
   const fetchCustomers = async () => {
     try{
       const data = await CustomersApi.findAll();
-      setCustomers(data)
+      setCustomers(data);
+      setLoading(false);
     } catch(error){
-      console.log(error.response)
+      toast.error("Impossible de charger les clients");
     }
   }
 
@@ -24,15 +28,17 @@ export default function CustomersPage(props) {
     fetchCustomers(); 
   }, []);
 
-  //Gestion de la suppression d'uncleints
+  //Gestion de la suppression d'un clients
   const handleDelete = async id => {
     const originalCustomers = [...customers];
     setCustomers(customers.filter(customer => customer.id !== id));
 
     try{
-      await customersApi.delete(id)
+      await customersApi.DeleteById(id);
+      toast.success("La facture a bien été supprimée");
     }catch(error){
       setCustomers(originalCustomers);
+      toast.error("Impossible de supprimer la facture");
     }
   }
 
@@ -91,14 +97,15 @@ export default function CustomersPage(props) {
             <th></th>
           </tr>
         </thead>
+        {!loading && 
         <tbody>
           {paginatedCustomers.map(customer => (
             <tr key={customer.id}>
               <td>{customer.id}</td>
               <td>
-                <a href='#'>
+                <Link to={"/customers/"+customer.id} className="btn btn-link">
                   {customer.firstName} {customer.lastName}
-                </a>
+                </Link>
               </td>
               <td>{customer.email}</td>
               <td>{customer.company}</td>
@@ -120,8 +127,9 @@ export default function CustomersPage(props) {
               </td>
             </tr>
           ))}
-        </tbody>
+        </tbody>}
       </table>
+        {loading && <TableLoader />}
 
       {itemPerPage < filteredCustomers.length && <Pagination
         currentPage={currentPage}

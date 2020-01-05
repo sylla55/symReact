@@ -1,44 +1,84 @@
-import React, { useState } from 'react';
-import Field from '../components/forms/Field';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import Field from '../components/forms/Field';
+import CustomersApi from '../services/CustomersApi';
+import { toast } from 'react-toastify';
+import DotLoader from '../components/loader/DotLoader';
 
-const CUSTOMER = {lastName: '', firstName: '', email: '', company: ''};
+const CustomerPage = ({ match, history }) => {
+  const { id = 'new' } = match.params;
 
-const CustomerPage = props => {
-  const [customer, setCustomer] = useState({ CUSTOMER });
+  const [customer, setCustomer] = useState({
+    lastName: '',
+    firstName: '',
+    email: '',
+    company: ''
+  });
+  const [error, setError] = useState({
+    lastName: '',
+    firstName: '',
+    email: '',
+    company: ''
+  });
+  const [editing, setEditing] = useState(false);
+  const [loading,setLoading] = useState(false);
 
-  const [error, setError] = useState({ CUSTOMER });
-
+  //Chargement de Inputs
   const handleChange = ({ currentTarget }) =>
     setCustomer({ ...customer, [currentTarget.name]: currentTarget.value });
 
+  // Gestion de la soummision
   const handleSubmit = async event => {
     event.preventDefault();
 
-   try{
-       await axios
-        .post('http://localhost:8000/api/customers', customer)
-        .then(response => console.log(response.data));
-    
-     setError({});
-   }catch(error){
-     if(error.response.data.violations){
-         const apiErrors ={};
-         error.response.data.violations.map(violation =>{
-            apiErrors[violation.propertyPath] = violation.message;
-        })
-        setError(apiErrors);
-     }
-   }
+    try {
+      if (editing) {
+        await CustomersApi.edit(id, customer);
+        toast.success('Le client a été modifié');
+      } else {
+        await CustomersApi.postOnCutomer(customer);
+        toast.success('Le client a été créer');
+      }
+      history.replace('/customers');
+    } catch ( error) {
+      toast.error('Des erreurs dans votre formulaire');
+    }
   };
+
+  //Recuperation du client en fonction de l'ID
+  const fetchCustomer = async id => {
+    try {
+      const { firstName, lastName, email, company } = await CustomersApi.find(
+        id
+      );
+      setCustomer({ firstName, lastName, email, company });
+      setLoading(false);
+    } catch (error) {
+      toast.error("Le client n'a pas pu etre chargé");
+      history.replace('/customers');
+    }
+  };
+
+  //Chargement du client
+  useEffect(() => {
+    if (id !== 'new') {
+      setEditing(true);
+      setLoading(true);
+      fetchCustomer(id);
+    }
+  }, [id]);
 
   return (
     <>
-      <h1>Création d'un client</h1>
+      {(!editing && <h1>Création d'un client</h1>) || (
+        <h1>Modification du client</h1>
+      )}
+
+    {!loading &&
       <form className='col-md-8' onSubmit={handleSubmit}>
         <Field
           name='lastName'
+          value={customer.lastName}
           onChange={handleChange}
           label='Nom de famille'
           placeholder='Nom de famille du client'
@@ -46,6 +86,7 @@ const CustomerPage = props => {
         />
         <Field
           name='firstName'
+          value={customer.firstName}
           onChange={handleChange}
           label='Prenom de famille'
           placeholder='Prenom de famille du client'
@@ -53,6 +94,7 @@ const CustomerPage = props => {
         />
         <Field
           name='email'
+          value={customer.email}
           onChange={handleChange}
           label='Email'
           placeholder='Adresse email du client'
@@ -60,6 +102,7 @@ const CustomerPage = props => {
         />
         <Field
           name='company'
+          value={customer.company}
           onChange={handleChange}
           label='Entreprise'
           placeholder='Entreprise du client'
@@ -71,7 +114,9 @@ const CustomerPage = props => {
             Liste des clients
           </Link>
         </div>
-      </form>
+    </form> }
+
+    {loading && <DotLoader />}
     </>
   );
 };
